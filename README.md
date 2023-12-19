@@ -2,21 +2,32 @@
 
 ## Summary
 
-| Company name | [Milrem Robotics]([https://website.link](https://milremrobotics.com/)) |
+| Company name | [Milrem Robotics](https://milremrobotics.com/) |
 | :--- | :--- |
-| Development Team Lead Name | [Tambet Matiisen](https://www.etis.ee/CV/Tambet_Matiisen/eng), University of Tartu |
+| Project Manager | Meelis Leib |
+| Systems Architect | Erik Ilbis |
+
+| Company name | [Autonomous Driving Lab](https://adl.cs.ut.ee/), [Institute of Computer Science](https://cs.ut.ee/), [University of Tartu](https://ut.ee/) |
+| :--- | :--- |
+| Team lead | [Tambet Matiisen](https://www.etis.ee/CV/Tambet_Matiisen/eng) |
+| Data collection | Kertu Toompea |
+| Model training | Romet Aidla |
+| Robot integration | Anish Shrestha |
+| Map preparation | Edgar Sepp |
 
 ## Objectives of the Demonstration Project
 
 The goal of the project is to collect and validate dataset for vision-based off-road navigation with geographical hints.
 
-Milrem UGV needs to be able to navigate
+Milrem UGV needs to be able to navigate:
 * in unstructured environment (no buildings, roads or other landmarks),
 * with passive sensors (using only camera and GNSS, active sensors make the UGV discoverable to the enemy),
 * with no prior map or with outdated map,
 * with unreliable satellite positioning signals.
 
 System that satisfies the above goals was proposed in the [ViKiNG paper](https://sites.google.com/view/viking-release) by Dhruv Shah and Sergey Levine from University of California, Berkeley. The paper demonstrated vision-based kilometer-scale navigation with geographical hints in semi-structured urban environments, including parks. The goal of this project was to extend the ViKiNG solution to unstructured off-road environments, for example forests.
+
+Examples of desired environment:
 
 | | | |
 |-|-|-|
@@ -28,13 +39,15 @@ System that satisfies the above goals was proposed in the [ViKiNG paper](https:/
 
 The goal of using passive sensors means that the camera is the primary sensor. The currently best known way to make sense of camera images is to use artificial neural networks. These networks need a lot of training data to work well. Therefore the main goal of this project was to collect and validate the data to train artificial neural networks for vision-based navigation.
 
-We set ourselves a goal to collect 50 hours of data consisting of 150 km of trajectories. This was inspired by the ViKiNG paper having 42 hours of training data. Time-wise this goal was achieved, distance-wise slightly less data was collected, 104 km.
+We set ourselves a goal to collect 50 hours of data consisting of 150 km of trajectories. This was inspired by the ViKiNG paper having 42 hours of training data. Time-wise this goal was achieved, distance-wise 104 km was collected.
 
 In addition to collecting the data we wanted to validate if it is usable for training the neural networks. We actually went further than that by not only training the networks, but also implementing a proof-of-concept navigation system on [Jackal robot](https://clearpathrobotics.com/jackal-small-unmanned-ground-vehicle/).
 
+![Jackal UGV](images/jackal.jpg)
+
 ### Data sources
 
-The data was collected during Apr 12 - Oct 6, 2023 from 27 orienteering events and 20 self-guided sessions. Details of the places and weather conditions can be found in [this table](https://docs.google.com/spreadsheets/d/1QvA2ZYTeZOpk7b1DCHypi17wS-ywxv5n0ifdOzRoi_o/edit?usp=sharing).
+The data was collected from April 12th till October 6th, 2023 from 27 orienteering events and 20 self-guided sessions around Tartu, Estonia. Details of the places and weather conditions can be found in [this table](https://docs.google.com/spreadsheets/d/1QvA2ZYTeZOpk7b1DCHypi17wS-ywxv5n0ifdOzRoi_o/edit?usp=sharing).
 
 Data collection was performed with golf trolley fitted with following sensors:
 * [ZED 2i](https://www.stereolabs.com/products/zed-2) stereo camera
@@ -71,8 +84,6 @@ Further cleaning was applied to the data with following sections removed:
 * Model prediction errors were analyzed
 * Bad trajectories
 * Missing or bad camera images
-* 90° turns
-* Climbing over fallen trees
 
 Altogether this resulted in 94.4 km of trajectories used for training.
 
@@ -122,45 +133,53 @@ VAE model was trained from scratch, all other models were used with pre-trained 
 
 The models were tested both off-policy and on-policy. Off-policy means that the model was applied to recorded data, the model's actions were just visualized, but not actuated. On-policy means that the model’s actions were actually actuated on the robot.
 
-**Off-policy results**
+For on-policy testing we recorded a fixed route, took goal images at fixed intervals and measured success rate in navigating to every goal image along the route. Basically it shows how well the model understands the direction of goal image and how well detect it can detect if the goal was reached. The operator intervened when the robot was going completely off the path and guided it back to the track. Sometimes the robot failed to detect the goal, but was driving in the right direction and successfully recognized the subsequent goal. Then the goal was not marked as achieved, but no intervention was necessary.
 
-In the videos green trajectory represents ground truth, red trajectory represents goal-conditioned predicted trajectory (many in case of NoMaD), blue represents sampled possible trajectories.
+##### Off-policy results
+
+The videos below show models applied to pre-recorded data. In the videos green trajectory represents ground truth, red trajectory represents goal-conditioned predicted trajectory (many in case of NoMaD), blue represents sampled possible trajectories (in case of VAE).
 
 | Model | Video |
 | ----- | ----- |
-| VAE | [![VAE](https://img.youtube.com/vi/9J8xiIbLHiM/hqdefault.jpg)](https://youtu.be/9J8xiIbLHiM) |
-| GNM finetuned | [![GNM finetuned](https://img.youtube.com/vi/PeYGA85I2FI/hqdefault.jpg)](https://youtu.be/PeYGA85I2FI) |
-| ViNT | [![ViNT](https://img.youtube.com/vi/pnftnew_JVo/hqdefault.jpg)](https://youtu.be/pnftnew_JVo) |
-| NoMaD with moving goal | [![NoMaD with moving goal](https://img.youtube.com/vi/KI7kkKAnis8/hqdefault.jpg)](https://youtu.be/KI7kkKAnis8) |
-| NoMaD with fixed goal | [![NoMaD with fixed goal](https://img.youtube.com/vi/xCyGxyZ0rtA/hqdefault.jpg)](https://youtu.be/xCyGxyZ0rtA) |
+| VAE | [![VAE](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1tquWlUhYx28-DWnEtpXirVE92o0qHx1p)](https://drive.google.com/file/d/1tquWlUhYx28-DWnEtpXirVE92o0qHx1p/view?resourcekey "VAE") |
+| GNM finetuned | [![GNM finetuned](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=180igiMJnWBf8YE3DZbCG853qSL2GkESc)](https://drive.google.com/file/d/180igiMJnWBf8YE3DZbCG853qSL2GkESc/view?resourcekey "GNM finetuned") |
+| ViNT | [![ViNT](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1_QIvDJMR57MPVieUrc0xZOFegU5lanyt)](https://drive.google.com/file/d/1_QIvDJMR57MPVieUrc0xZOFegU5lanyt/view?resourcekey "ViNT") |
+| NoMaD with goal images at fixed intervals | [![NoMaD goal](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1wso6B5fwrcYD3NxVQSd4vq_lhldbSDBb)](https://drive.google.com/file/d/1wso6B5fwrcYD3NxVQSd4vq_lhldbSDBb/view?resourcekey "NoMaD goal") |
+| NoMaD with one fixed goal (exploratory mode) | [![NoMaD explore](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1EY5UJYbDQ6zVqpVaWhXPLwqbYNua4hgH)](https://drive.google.com/file/d/1EY5UJYbDQ6zVqpVaWhXPLwqbYNua4hgH/view?resourcekey "NoMaD explore") |
+| NoMaD orienteering | [![NoMaD orienteering](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1BikGqAiGlq7qtQEK6XbJFApGiY28XP6G)](https://drive.google.com/file/d/1BikGqAiGlq7qtQEK6XbJFApGiY28XP6G/view "NoMaD orienteering") |
 
-**On-policy results**
+##### On-policy results indoors
 
-We created a fixed course in Delta park with goal images every 2, 5 or 10 meters and measured the goal success rate for each interval. Basically it shows how well the model can move towards the goal image and detect if it has reached the goal image. The operator intervened when the robot was going completely off the path and guided it back to the track. Sometimes the robot failed to detect the goal, but was driving in the right direction and successfully recognized the subsequent goal.
+We recorded a fixed route in Delta office with goal images every 1 or 2 meters and measured the goal success rate for each interval.
 
-Success rate with 2m intervals:
-| Model | Number of goal images | Number of interventions | Success rate |
-|-------|-----------------------|-------------------------|--------------|
-| GNM | 38 | 1 | 86.84 |
-| GNM_finetuned | 38 | 0 | 81.58 |
+| Model | Goal interval | Number of goal images | Number of interventions | Success rate | Video |
+|-------|---------------|-----------------------|-------------------------|--------------|-------|
+| GNM | 1m | 30 | 0 | 90.00 | [video](https://drive.google.com/file/d/1fKsaQo0beNpOcQ4xfqAF1RfVevhw57Ne/view?usp=drive_link) |
+| GNM finetuned | 1m | 30 | 1 | 93.33 | [video](https://drive.google.com/file/d/1-NNzsXL4chn6ZxIgDQxeHjIHp1OUBnzg/view?usp=drive_link) |
+| ViNT | 1m | 30 | 2 | 96.67 | [video](https://drive.google.com/file/d/1CkjuG037wp3DgFgFsC0gsZ2YhntCocFT/view?usp=drive_link) |
+| GNM | 2m | 15 | 0 | 86.67 | [video](https://drive.google.com/file/d/1l7yI73b3bl7qxeJAT8gBtkWD8RsFvHhB/view?usp=drive_link) |
+| GNM finetuned | 2m | 15 | 0 | 93.33 | [video](https://drive.google.com/file/d/1kHIW5LfpA2eoPawgp5HJprsbevPLBXgg/view?usp=drive_link) |
+| ViNT | 2m | 15 | 0 | 93.33 | [video](https://drive.google.com/file/d/19egUyGQgr0efxUop5Jl9mVbd9vws7GYe/view?usp=drive_link) |
 
-Success rate with 5m intervals:
-| Model | Number of goal images | Number of interventions | Success rate |
-|-------|-----------------------|-------------------------|--------------|
-| GNM_finetuned | 17 | 7 | 100 |
-| ViNT | 17 | 7 | 100 |
+Example video of top-performing model (GNM-finetuned) at 4X speed:
 
-Success rate with 10m intervals:
-| Model | Number of goal images | Number of interventions | Success rate |
-|-------|-----------------------|-------------------------|--------------|
-| ViNT | 8 | 9 | 100 |
+[![GNM finetuned indoors](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=15qihSb1BZ0RVqstDex32I_GUBa3ikWlf)](https://drive.google.com/file/d/15qihSb1BZ0RVqstDex32I_GUBa3ikWlf/view?resourcekey "GNM finetuned indoors")
 
-Following videos show on-policy behavior:
+##### On-policy results outdoors
 
-| Location | Video |
-| -------- | ----- |
-| Delta office | [![Delta office on-policy](https://img.youtube.com/vi/PZ7-ZJ6SLpA/hqdefault.jpg)](https://youtu.be/PZ7-ZJ6SLpA) |
-| Delta park | [![Delta park on-policy](https://img.youtube.com/vi/Cq9TydxzxqU/hqdefault.jpg)](https://youtu.be/Cq9TydxzxqU) |
+We recorded a fixed route in Delta park with goal images every 2, 5 or 10 meters and measured the goal success rate for each interval.
+
+| Model | Goal interval | Number of goal images | Number of interventions | Success rate | Video |
+|-------|---------------|-----------------------|-------------------------|--------------|-------|
+| GNM | 2m | 38 | 1 | 86.84 | [video](https://drive.google.com/file/d/1THqJDbQeXrH3yAH98Jy1UvMSAvmHvKRD/view?usp=drive_link) |
+| GNM finetuned | 2m | 38 | 0 | 81.58 | [video](https://drive.google.com/file/d/1RrYOHmaVN1zyfmtP1UQVwqDBxuR-d5Fg/view?usp=drive_link) |
+| GNM finetuned | 5m | 17 | 7 | 100 | [video](https://drive.google.com/file/d/1TtaI7RH3j7aUPrn-sAqzkGkmKGm0Hzrx/view?usp=drive_link) |
+| ViNT | 5m | 17 | 7 | 100 | [video](https://drive.google.com/file/d/1lvwFo9fWuyTr2sdfYbFnmEqpWYJFSFrI/view?usp=drive_link) |
+| ViNT | 10m | 8 | 9 | 100 | [video](https://drive.google.com/file/d/1xMCT0IKqcBXsGmMsip_OuUuiqeQfT7VM/view?usp=drive_link) |
+
+Example video of top-performing model (GNM-finetuned) at 4X speed:
+
+[![GNM finetuned outdoors](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1XViu-Hy7rpZOxas_RN6DIvZqgm3o_uc0)](https://drive.google.com/file/d/1XViu-Hy7rpZOxas_RN6DIvZqgm3o_uc0/view?resourcekey "GNM finetuned outdoors")
 
 #### Global planner
 
@@ -170,27 +189,27 @@ For global planner following network architectures were considered:
 
 As the U-Net approach worked much better, the contrastive approach was abandoned. Most of the experimentation was done with the base map with elevation. 
 
-Following videos show a simulation where the robot proposes a number of random waypoints and then moves towards the one that has the highest probability, i.e. it is on-policy, but simulated.
+Following videos show on-policy simulation where the robot proposes a number of random waypoints and then moves towards the one that has the highest probability. Blue dot shows the robot current location and yellow dot is the goal location.
 
 | Location | Video |
 | -------- | ----- |
-| Ihaste | [![Ihaste](https://img.youtube.com/vi/wI3Tavbgs5M/hqdefault.jpg)](https://youtu.be/wI3Tavbgs5M) |
-| Kärgandi, sticking to the road | [![Kärgandi](https://img.youtube.com/vi/o82MFpMYh5c/hqdefault.jpg)](https://youtu.be/o82MFpMYh5c) |
-| Annelinn, avoidance of houses | [![Kärgandi](https://img.youtube.com/vi/5qfriy7qhW0/hqdefault.jpg)](https://youtu.be/5qfriy7qhW0) |
+| Ihaste | [![Ihaste](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1cYjqSuJw1GiFWJD4dCPtVZDfcnfY60lt)](https://drive.google.com/file/d/1cYjqSuJw1GiFWJD4dCPtVZDfcnfY60lt/view?resourcekey "Ihaste") |
+| Kärgandi, sticking to the road | [![Kärgandi](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=198s90PuRA5Hu_Fdqus3q-sHthC79i5Oj)](https://drive.google.com/file/d/198s90PuRA5Hu_Fdqus3q-sHthC79i5Oj/view?resourcekey "Kärgandi") |
+| Annelinn, avoidance of houses | [![Annelinn](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1FlzEf6NuaYQm3XvNYK3s9jMdqaTcXTB9)](https://drive.google.com/file/d/1FlzEf6NuaYQm3XvNYK3s9jMdqaTcXTB9/view?usp=sharing "Annelinn") |
 
-Following videos shows different behavior for different map modalities.
+Following videos show different behavior for different map modalities.
 
 | Location | Video |
 | -------- | ----- |
-| Base map - sticking to the road | [![Ihaste](https://img.youtube.com/vi/7HMwVmDzGak/hqdefault.jpg)](https://youtu.be/7HMwVmDzGak) |
-| Road map - going straight (no context) | [![Ihaste](https://img.youtube.com/vi/-EbNeVx_BrE/hqdefault.jpg)](https://youtu.be/-EbNeVx_BrE) |
-| Orthophoto - mostly sticking to the road | [![Ihaste](https://img.youtube.com/vi/_4irqiPSgBM/hqdefault.jpg)](https://youtu.be/_4irqiPSgBM) |
+| Base map - sticking to the road | [![Base map](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1ZPHZ-QpzHZBQanpG8eYiiiogvydpmpFx)](https://drive.google.com/file/d/1ZPHZ-QpzHZBQanpG8eYiiiogvydpmpFx/view?usp=sharing "Base map") |
+| Road map - going straight (not enough context) | [![Road map](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1VJDL_tAtN4EEGPLBBhsOQc6hVFQCfcSw)](https://drive.google.com/file/d/1VJDL_tAtN4EEGPLBBhsOQc6hVFQCfcSw/view?usp=sharing "Road map") |
+| Orthophoto - mostly sticking to the road | [![Orthophoto](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1pQPds16DvvY1OCAJqYb46ydj_qGQwP_V)](https://drive.google.com/file/d/1pQPds16DvvY1OCAJqYb46ydj_qGQwP_V/view?usp=sharing "Orthophoto") |
 
 #### Putting it all together
 
-Following video shows off-policy evaluation of the whole system on recorded session:
+Following video shows off-policy evaluation of the whole system on a recorded session. Colored trajectories are produced with crops of the original camera image used as goal, as shown in the video. White trajectory comes from the final goal. 
 
-[![Delta off-policy](https://img.youtube.com/vi/Y_p7K6vJmA8/hqdefault.jpg)](https://youtu.be/Y_p7K6vJmA8)
+[![Delta park off-policy final](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1hXT95sj3iY2_OIvyIv8ObQHLKkCdJ1Lu)](https://drive.google.com/file/d/1hXT95sj3iY2_OIvyIv8ObQHLKkCdJ1Lu/view?usp=sharing "Delta park off-policy final")
 
 On-policy evaluation of the whole system was not possible due to some technical difficulties with the GNSS sensor and due to winter making the use of the models pointless, because they were mainly trained on summer data.
 
@@ -227,9 +246,10 @@ For global planner following network architectures were tried:
 The working solution could be used in any area that needs navigation in unstructured environment with poor GPS signal and outdated maps, for example:
 * military,
 * agriculture,
+* forestry,
 * rescue.
 
-The dataset collected in this project will also be used to create a visual navigation benchmark and international robot orienteering competition. Such competition will make novel solutions and international talent accessible to Milrem Robotics.
+The dataset collected in this project can also be used to create a visual navigation benchmark and international robot orienteering competition. Such competition would make novel solutions and international talent accessible to Milrem Robotics.
 
 ### Lessons learned
 
@@ -237,7 +257,7 @@ For training the local planner the dataset seemed insufficient or contained too 
 
 Alternative model outputs could be considered, e.g. predicting free space instead of trajectories and proposing waypoints from that free space. Also collection of more explorative data directly with the robot might be necessary, as in the ViKiNG paper they used mainly automatically collected exploratory data (30 hours) and relatively few expert trajectories (12 hours). In our case all of the data was expert trajectories.
 
-Global planner trained much better and was able to estimate reasonably well the recommended path between two points. We also observed different behavior for different map modalities, e.g. base map and orthophotos. More work is needed to reduce the artifacts produced by the fully convolutional network and some map modalities might need further tuning.
+Global planner trained much better and was able to estimate reasonably well the recommended path between two points. We also observed different behavior for different map modalities, e.g. base map and road map. More work is needed to reduce the artifacts produced by the fully convolutional network and some map modalities might need further tuning.
 
 Final takeaways:
 * Training neural networks in 2023 is still hard.
@@ -247,9 +267,8 @@ Final takeaways:
 
 ### Description of User Interface 
 
-![UI](https://img.youtube.com/vi/Y_p7K6vJmA8/0.jpg)
+![Delta park off-policy final](https://drive.google.com/thumbnail?authuser=0&sz=w1280&id=1hXT95sj3iY2_OIvyIv8ObQHLKkCdJ1Lu)
 
-* The screen shows current camera image and proposed trajectories.
-* Top right shows the goal image.
-* Bottom right shows the map and probability map (the path from current position to goal). Proposed waypoint colors match the proposed trajectory colors. 
+* The screen shows current camera image and proposed trajectories. White trajectory represents the trajectory induced by the goal image at top right.
+* Bottom right shows the probability map (the path from current position to goal) and original map. Waypoint colors match the trajectory colors. 
 * The left pane shows the robot command.
